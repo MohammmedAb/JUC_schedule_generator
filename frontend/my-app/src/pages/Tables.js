@@ -19,9 +19,6 @@ const Tables = () => {
   const {courses,type}=useParams()
 
   let coursesArray=courses.split(',')
-  // console.log('courses',coursesArray)
-  // console.log('branch',type)
-
 
   useEffect(() => {
     const fetch = async () => {

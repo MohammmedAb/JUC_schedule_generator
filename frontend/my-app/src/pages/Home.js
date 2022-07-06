@@ -12,6 +12,7 @@ import {
   CloseButton,
   Square,
   Spinner,
+  Select,
 } from '@chakra-ui/react';
 import { AddIcon, CloseIcon } from '@chakra-ui/icons';
 import { Table } from 'react-chakra-pagination';
@@ -41,9 +42,9 @@ function Home() {
   const [rowsMale, setRowsMale] = useState([]); //tables row
   const [rowsFemale, setRowsFemale] = useState([]); //tables row
   const [radioValue, setRadioValue] = useState('1');
-  const [Close, setColse] = useState('false');
   const [isPending, setIsPending] = useState(false);
-
+  const [filter, setFilter] = useState('');
+  console.log(filter);
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -52,7 +53,7 @@ function Home() {
         const response = await axios.get(
           'https://juc-fasiapi.herokuapp.com/home_scheduls'
         );
-        // console.log(response.data[1]);
+        console.log(response.data[0]);
         setRowsMale(response.data[0]);
         setRowsFemale(response.data[1]);
       } catch (error) {
@@ -241,20 +242,28 @@ function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // let postList = [userCourse, radioValue];
-
-    const postList=[userCourse,radioValue]
+    let filteredCourses = userCourse.filter(function (e) {
+      return e;
+    });
+    console.log(filteredCourses);
+    const postList = [filteredCourses, radioValue];
     setIsPending(true);
     try {
-      // console.log(userCourse)
-      const res = await axios.post('https://juc-fasiapi.herokuapp.com/',postList)
+      const res = await axios.post(
+        'https://juc-fasiapi.herokuapp.com/',
+        postList
+      );
       setIsPending(false);
-      navigate(`/Schedules/${userCourse}/${radioValue}`);
+      navigate(`/Schedules/${filteredCourses}/${radioValue}`);
     } catch (error) {
       setIsPending(false);
       setInputsIsCorrect(false);
     }
   };
+
+  console.log(
+    rowsMale.flatMap((row) => (row[0].startsWith('CS') ? row[0] : [])).length
+  );
 
   return (
     <Box className="App">
@@ -304,7 +313,6 @@ function Home() {
             Scheduls Generator
           </Heading>
           <Heading
-          
             as="h2"
             size="md"
             pb="2"
@@ -344,7 +352,7 @@ function Home() {
                 data-index={index}
                 onChange={handleUserCourseChange}
                 display="flex"
-                placeholder="CS123"
+                placeholder="CS 123"
               />
               <InputRightElement>
                 <IconButton
@@ -392,21 +400,54 @@ function Home() {
             borderColor="gray.200"
             borderRadius="md"
           >
+            <Select
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter the courses"
+            >
+              <option value="">No filter</option>
+              <option value="ACCT">ACCT</option>
+              <option value="BUS">BUS</option>
+              <option value="CE">CE</option>
+              <option value="CS">CS</option>
+              <option value="ENGL">ENGL</option>
+              <option value="GS">GS</option>
+              <option value="HRM">HRM</option>
+              <option value="LSCM">LSCM</option>
+              <option value="MATH">MATH</option>
+              <option value="ME">ME</option>
+              <option value="MIS">MIS</option>
+              <option value="SCI">SCI</option>
+            </Select>
             <TabPanels>
               <TabPanel>
                 <Table
+                  emptyData={{ text: 'No courses' }}
                   columns={Malecolumns}
-                  data={maleTableData}
-                  totalRegisters={rowsMale.length}
+                  // data={maleTableData}
+                  data={maleTableData.filter((data) =>
+                    data.courseCode.startsWith(filter)
+                  )}
+                  totalRegisters={
+                    rowsMale.flatMap((row) =>
+                      row[0].startsWith(filter) ? row[0] : []
+                    ).length
+                  }
                   page={page}
                   onPageChange={(page) => setPage(page)}
                 />
               </TabPanel>
               <TabPanel>
                 <Table
+                  emptyData={{ text: 'No courses' }}
                   columns={femaleColumns}
-                  data={femaleTableData}
-                  totalRegisters={rowsFemale.length}
+                  data={femaleTableData.filter((data) =>
+                    data.fecourseCode.startsWith(filter)
+                  )}
+                  totalRegisters={
+                    rowsFemale.flatMap((row) =>
+                      row[0].startsWith(filter) ? row[0] : []
+                    ).length
+                  }
                   page={fepage}
                   onPageChange={(fepage) => setFePage(fepage)}
                 />
@@ -430,7 +471,7 @@ function Home() {
             <ButtonGroup variant="ghost">
               <IconButton
                 as="a"
-                target='_blank'
+                target="_blank"
                 href="https://github.com/MohammmedAb"
                 aria-label="GitHub"
                 icon={<FaGithub fontSize="1.25rem" />}
