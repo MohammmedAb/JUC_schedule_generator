@@ -44,7 +44,6 @@ function Home() {
   const [radioValue, setRadioValue] = useState('1');
   const [isPending, setIsPending] = useState(false);
   const [filter, setFilter] = useState('');
-  console.log(filter);
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -53,7 +52,6 @@ function Home() {
         const response = await axios.get(
           'https://juc-fasiapi.herokuapp.com/home_scheduls'
         );
-        console.log(response.data[0]);
         setRowsMale(response.data[0]);
         setRowsFemale(response.data[1]);
       } catch (error) {
@@ -245,14 +243,15 @@ function Home() {
     let filteredCourses = userCourse.filter(function (e) {
       return e;
     });
-    console.log(filteredCourses);
     const postList = [filteredCourses, radioValue];
     setIsPending(true);
     try {
       const res = await axios.post(
-        'https://juc-fasiapi.herokuapp.com/',
+        'https://juc-fasiapi.herokuapp.com/check',
         postList
       );
+      console.log(res.data)
+      if(!res.data.every(Boolean))  throw 'wrong input'
       setIsPending(false);
       navigate(`/Schedules/${filteredCourses}/${radioValue}`);
     } catch (error) {
@@ -261,9 +260,6 @@ function Home() {
     }
   };
 
-  console.log(
-    rowsMale.flatMap((row) => (row[0].startsWith('CS') ? row[0] : [])).length
-  );
 
   return (
     <Box className="App">

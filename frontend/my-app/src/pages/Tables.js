@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import MyTable from '../components/Table';
 import { Box, Text, Button, Spinner } from '@chakra-ui/react';
 import NoScheduler from '../images/NoScheduler.svg';
-import { useNavigate ,useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 import {
   Breadcrumb,
@@ -11,22 +11,29 @@ import {
   BreadcrumbLink,
   BreadcrumbSeparator,
 } from '@chakra-ui/react';
+import ReactPaginate from 'react-paginate';
 
 const Tables = () => {
   const [rows, setRows] = useState([]);
   const [isPending, setIsPending] = useState(false);
   const navigate = useNavigate();
-  const {courses,type}=useParams()
-
-  let coursesArray=courses.split(',')
-
+  const { courses, type } = useParams();
+  const [len, setLen] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+  const [curPage,setCurPage]=useState(1)
+  let coursesArray = courses.split(',');
+  const pageSize=8
   useEffect(() => {
     const fetch = async () => {
-    const postList=[coursesArray,type]
+      const postList = [coursesArray, type];
       setIsPending(true);
       try {
-        const res = await axios.post('https://juc-fasiapi.herokuapp.com/',postList)
-        const dataTable = res.data;
+        const res = await axios.post('https://juc-fasiapi.herokuapp.com/', postList, {
+          params: { page_num: curPage, page_size: pageSize },
+        });
+        setLen(res.data[1]);
+        const dataTable = res.data[0];
+        console.log(dataTable);
         setIsPending(false);
         tablesData(dataTable);
       } catch (error) {
@@ -35,7 +42,7 @@ const Tables = () => {
       }
     };
     fetch();
-  }, []);
+  }, [curPage]);
 
   const tablesData = useCallback((dataTable) => {
     var rowArray = [];
@@ -48,7 +55,6 @@ const Tables = () => {
         rowArray.push(row);
       });
       stateArray.push(rowArray);
-      // console.log('rowArray', rowArray);
     });
     setRows(stateArray);
   }, []);
@@ -69,6 +75,11 @@ const Tables = () => {
     'Room No',
     'STAFF',
   ];
+
+  const handlePageClick = (event) => {
+    console.log(event.selected+1)
+    setCurPage(event.selected+1)
+  };
 
   return (
     <Box>
@@ -111,17 +122,35 @@ const Tables = () => {
       </Box>
       {rows.length > 0 && (
         <>
-          <Text mx='15px' as="h1" textAlign="center" fontSize="2xlg" fontWeight="bold">
+          <Text
+            mx="15px"
+            as="h1"
+            textAlign="center"
+            fontSize="2xlg"
+            fontWeight="bold"
+          >
             You have{' '}
             <Text as="span" color="orange">
-              {rows.length}
+              {len}
             </Text>{' '}
             possible options of schedules, choose the best for you
           </Text>
           <MyTable rows={rows} columns={columns} />
+
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={handlePageClick}
+            pageCount={Math.ceil(len/pageSize)}
+            previousLabel="< previous"
+            renderOnZeroPageCount={null}
+            containerClassName={'pagination'}
+            activeClassName={'active'}
+            subContainerClassName={'pages pagination'}
+            // breakLinkClassName={'pagination-wrapper'}
+          />
         </>
       )}
-      
     </Box>
   );
 };
