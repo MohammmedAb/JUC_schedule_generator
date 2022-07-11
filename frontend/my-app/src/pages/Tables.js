@@ -20,17 +20,21 @@ const Tables = () => {
   const { courses, type } = useParams();
   const [len, setLen] = useState(0);
   const [pageCount, setPageCount] = useState(0);
-  const [curPage,setCurPage]=useState(1)
+  const [curPage, setCurPage] = useState(1);
   let coursesArray = courses.split(',');
-  const pageSize=8
+  const pageSize = 8;
   useEffect(() => {
     const fetch = async () => {
       const postList = [coursesArray, type];
       setIsPending(true);
       try {
-        const res = await axios.post('https://juc-fasiapi.herokuapp.com/', postList, {
-          params: { page_num: curPage, page_size: pageSize },
-        });
+        const res = await axios.post(
+          'https://juc-fasiapi.herokuapp.com/',
+          postList,
+          {
+            params: { page_num: curPage, page_size: pageSize },
+          }
+        );
         setLen(res.data[1]);
         const dataTable = res.data[0];
         console.log(dataTable);
@@ -77,8 +81,8 @@ const Tables = () => {
   ];
 
   const handlePageClick = (event) => {
-    console.log(event.selected+1)
-    setCurPage(event.selected+1)
+    console.log(event.selected + 1);
+    setCurPage(event.selected + 1);
   };
 
   return (
@@ -120,7 +124,7 @@ const Tables = () => {
           </>
         )}
       </Box>
-      {rows.length > 0 && (
+      {rows.length > 0 && !isPending && (
         <>
           <Text
             mx="15px"
@@ -136,21 +140,18 @@ const Tables = () => {
             possible options of schedules, choose the best for you
           </Text>
           <MyTable rows={rows} columns={columns} />
-
-          <ReactPaginate
-            breakLabel="..."
-            nextLabel="next >"
-            onPageChange={handlePageClick}
-            pageCount={Math.ceil(len/pageSize)}
-            previousLabel="< previous"
-            renderOnZeroPageCount={null}
-            containerClassName={'pagination'}
-            activeClassName={'active'}
-            subContainerClassName={'pages pagination'}
-            // breakLinkClassName={'pagination-wrapper'}
-          />
         </>
       )}
+      <ReactPaginate
+        onPageChange={handlePageClick}
+        pageCount={Math.ceil(len / pageSize)}
+        previousLabel="< previous"
+        renderOnZeroPageCount={null}
+        containerClassName={'pagination'}
+        activeClassName={'active'}
+        subContainerClassName={'pages pagination'}
+        // breakLinkClassName={'pagination-wrapper'}
+      />
     </Box>
   );
 };
